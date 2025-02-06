@@ -1,20 +1,23 @@
-"use client"
+"use client";
 
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
 import * as Yup from "yup";
 
 export default function Login() {
-  const router = useRouter()
+  const router = useRouter();
+
   const signInSchema = Yup.object().shape({
-    email: Yup.string().email('Correo electrónico inválido').required('Campo requerido'),
+    email: Yup.string()
+      .email("Correo electrónico inválido")
+      .required("Campo requerido"),
     password: Yup.string()
-      .min(6, 'La contraseña debe tener al menos 6 caracteres')
-      .required('Campo requerido'),
+      .min(6, "La contraseña debe tener al menos 6 caracteres")
+      .required("Campo requerido"),
   });
 
   const formik = useFormik({
-    initialValues: { email: 'admin@dprimero.com', password: 'oxc45qGa3dsN9pg' },
+    initialValues: { email: "admin@dprimero.com", password: "oxc45qGa3dsN9pg" },
     validationSchema: signInSchema,
     onSubmit: async ({ email, password }) => {
       try {
@@ -22,15 +25,25 @@ export default function Login() {
           "https://0jqh6egbsi.execute-api.us-east-1.amazonaws.com/dev/v1/login",
           {
             method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
             body: JSON.stringify({ email, password }),
           }
         );
-        const { data } = await response.json()
 
-        console.log('Response =>', data);
-        router.push("/");
+        const data = await response.json();
+        console.log("Data recibida:", data);
+
+        if (!response.ok) {
+          throw new Error("Error al iniciar sesión");
+        }
+
+        document.cookie = `authToken=${data.data.authorization}; path=/; Secure; SameSite=Lax`;
+
+        router.push("/dashboard");
       } catch (error) {
-        console.log('Error =>', JSON.stringify(error));
+        console.error("Error =>", error);
       }
     },
   });
@@ -39,7 +52,9 @@ export default function Login() {
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <h1>LOGIN</h1>
       <form onSubmit={formik.handleSubmit}>
-        <h3 className="mb-6 is-size-3 has-text-weight-semibold">Inicia sesión</h3>
+        <h3 className="mb-6 is-size-3 has-text-weight-semibold">
+          Inicia sesión
+        </h3>
         <div className="field">
           <input
             className="input is-medium"
@@ -72,9 +87,11 @@ export default function Login() {
               : ""}
           </p>
         </div>
-        <button className="button is-primary is-medium is-fullwidth mb-4"
+        <button
+          className="button is-primary is-medium is-fullwidth mb-4"
           type="submit"
-          disabled={!formik.isValid}>
+          disabled={!formik.isValid}
+        >
           Ingresa
         </button>
       </form>
