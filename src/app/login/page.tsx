@@ -18,17 +18,15 @@ export default function Login() {
     validationSchema: signInSchema,
     onSubmit: async ({ email, password }) => {
       try {
-        const response = await fetch(
-          "https://0jqh6egbsi.execute-api.us-east-1.amazonaws.com/dev/v1/login",
-          {
-            method: "POST",
-            body: JSON.stringify({ email, password }),
-          }
-        );
-        const { data } = await response.json()
+        await fetch("/api/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password }),
+        });
 
-        console.log('Response =>', data);
-        router.push("/");
+        router.push("/dashboard");
       } catch (error) {
         console.log('Error =>', JSON.stringify(error));
       }
